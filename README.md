@@ -1,9 +1,11 @@
 Project Overview
+
 CosmicStream Pro is an interactive web-based Disk Scheduling Simulator that visualizes classic algorithms like FCFS, SSTF, SCAN, C-SCAN, LOOK, and C-LOOK. It features a cosmic-themed UI with animated rocket navigation across disk tracks (planets), real-time telemetry, buffer health monitoring, and performance comparisons.
 
 Users input a request queue (track numbers 0-199), initial head position, and select an algorithm to launch simulations with smooth rocket animations and seek distance calculations.
 
 Key Features
+
 Visual Galaxy Map: Planets represent disk tracks; rocket moves precisely to service requests without overlap.
 
 Real-Time Metrics: Tracks total seek distance, buffer events, current track, and progress with a dynamic buffer fill bar.
@@ -17,6 +19,7 @@ Customizable Speed: Slider adjusts animation delay (250-1200ms).
 Responsive Glassmorphism UI: Cosmic gradients, starfield background, and backdrop blur effects.
 
 Usage
+
 Enter comma-separated track requests (e.g., 98,183,37,122,14,124).
 
 Set initial head position (default: 53).
