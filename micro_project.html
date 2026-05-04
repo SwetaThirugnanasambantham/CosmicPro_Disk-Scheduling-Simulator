@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🚀 CosmicStream Pro | Disk Scheduling Simulator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(ellipse at 30% 20%, #030617, #000000);
+      font-family: 'Segoe UI', 'Poppins', 'Orbitron', 'Arial', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      color: #eef5ff;
+      padding: 20px;
+    }
+
+    /* animated cosmic mist */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 80% 30%, rgba(90, 50, 150, 0.2), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    canvas#stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .dashboard {
+      position: relative;
+      z-index: 2;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .cosmic-header {
+      text-align: center;
+      margin-bottom: 24px;
+      backdrop-filter: blur(4px);
+    }
+    .cosmic-header h2 {
+      font-size: 3rem;
+      background: linear-gradient(135deg, #fff4cf, #9bc5ff, #e0aaff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(160, 120, 255, 0.4);
+      letter-spacing: 3px;
+      font-weight: 700;
+    }
+    .cosmic-header p {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      letter-spacing: 1.5px;
+    }
+
+    .glass-panel {
+      background: rgba(8, 18, 28, 0.65);
+      backdrop-filter: blur(14px);
+      border-radius: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 40px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+      padding: 22px 28px;
+      margin-bottom: 28px;
+      transition: all 0.2s;
+    }
+
+    .controls-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .input-group label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #b9dcff;
+    }
+    input, select {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 40px;
+      padding: 10px 18px;
+      color: white;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      outline: none;
+      transition: 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #c084fc;
+      box-shadow: 0 0 15px rgba(192,132,252,0.5);
+    }
+    button {
+      background: linear-gradient(105deg, #1e2f3f, #0f1a24);
+      border: none;
+      border-radius: 50px;
+      padding: 10px 28px;
+      font-weight: bold;
+      color: #f0f9ff;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.4);
+      font-family: inherit;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,200,0.2);
+    }
+    button:hover {
+      background: linear-gradient(105deg, #2f4b62, #1f3345);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.5);
+      border-color: #d9a7ff;
+    }
+    .btn-primary {
+      background: linear-gradient(125deg, #7c3aed, #48c6ef);
+      color: white;
+      font-weight: bold;
+    }
+    .btn-secondary {
+      background: rgba(25, 35, 55, 0.9);
+    }
+
+    .galaxy-wrapper {
+      border-radius: 32px;
+      background: rgba(0,0,0,0.5);
+      padding: 8px;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 8px 18px black;
+      overflow-x: auto;
+    }
+    .galaxy {
+      position: relative;
+      min-width: 660px;
+      height: 280px;
+      background: radial-gradient(ellipse at 30% 40%, #0b1020, #010101);
+      border-radius: 28px;
+      border: 1px solid rgba(70, 130, 200, 0.5);
+      overflow: visible;
+    }
+    .planet {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffbc6e, #e06e1a);
+      box-shadow: 0 0 15px rgba(255,100,20,0.6);
+      text-align: center;
+      line-height: 38px;
+      font-size: 13px;
+      font-weight: bold;
+      font-family: monospace;
+      color: #fff2db;
+      transition: 0.2s ease;
+      border: 1px solid rgba(255,200,100,0.7);
+      transform: scale(1);
+      z-index: 5;
+    }
+    .planet.visited {
+      background: radial-gradient(circle at 30% 30%, #2effb0, #0d9a6e);
+      box-shadow: 0 0 22px #3effb0;
+      border-color: #cafff0;
+      transform: scale(1.1);
+    }
+    /* rocket ship with flame */
+    .ship {
+      position: absolute;
+      top: 110px;
+      font-size: 38px;
+      filter: drop-shadow(0 0 10px #0af) drop-shadow(0 0 4px cyan);
+      transition: left 0.65s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      z-index: 30;
+      pointer-events: none;
+      text-shadow: 0 0 6px #0ff;
+      transform: translateX(-10px);
+    }
+    .ship::after {
+      content: "🔥";
+      position: absolute;
+      left: -20px;
+      top: 8px;
+      font-size: 26px;
+      opacity: 0.9;
+      filter: blur(1px);
+      animation: thrust 0.15s infinite alternate;
+    }
+    @keyframes thrust {
+      0% { opacity: 0.6; transform: scaleX(0.9);}
+      100% { opacity: 1; transform: scaleX(1.2);}
+    }
+
+    .metrics-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+    .metric-card {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      padding: 10px 18px;
+      flex: 1;
+      text-align: center;
+      border-left: 3px solid #a855f7;
+    }
+    .metric-card h4 {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      letter-spacing: 1px;
+    }
+    .metric-card .value {
+      font-size: 1.7rem;
+      font-weight: bold;
+      font-family: monospace;
+    }
+    .buffer-container {
+      background: #0a101c;
+      border-radius: 40px;
+      height: 14px;
+      width: 100%;
+      margin-top: 10px;
+      border: 1px solid #2a4160;
+      overflow: hidden;
+    }
+    .buffer-fill {
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(90deg, #62ffb0, #06c78a);
+      border-radius: 40px;
+      transition: width 0.2s ease;
+    }
+    .speed-slider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    input[type="range"] {
+      width: 150px;
+      padding: 0;
+      background: #1e2a3a;
+    }
+    .graph-container {
+      background: rgba(0,0,0,0.7);
+      border-radius: 24px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    canvas#graph {
+      background: #03070f;
+      border-radius: 20px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      box-shadow: 0 0 12px rgba(0,255,255,0.1);
+    }
+    .compare-table {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .algo-badge {
+      background: #111d2b;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      font-family: monospace;
+      border: 1px solid #2f4b6e;
+    }
+    .best-badge {
+      background: #f5b042;
+      color: #0a0c12;
+      box-shadow: 0 0 10px gold;
+      border-color: #ffdd88;
+    }
+    #status {
+      font-weight: bold;
+      text-shadow: 0 0 3px black;
+    }
+    button:active {
+      transform: scale(0.96);
+    }
+    ::-webkit-scrollbar {
+      height: 6px;
+      background: #111;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #7c3aed;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="dashboard">
+  <div class="cosmic-header">
+    <h2>🚀 COSMICSTREAM PRO</h2>
+    <p>⚡ precision rocket navigation • disk seek simulator</p>
+  </div>
+
+  <div class="glass-panel">
+    <div class="controls-grid">
+      <div class="input-group">
+        <label>📡 REQUEST QUEUE</label>
+        <input type="text" id="queue" placeholder="98,183,37,122,14,124" value="98,183,37,122,14,124,65,67">
+      </div>
+      <div class="input-group">
+        <label>🛸 HEAD POSITION (start)</label>
+        <input type="number" id="head" placeholder="53" value="53">
+      </div>
+      <div class="input-group">
+        <label>⚙️ SCHEDULING ALGO</label>
+        <select id="algo">
+          <option value="fcfs">FCFS (First Come First Serve)</option>
+          <option value="sstf">SSTF (Shortest Seek Time)</option>
+          <option value="scan">SCAN (Elevator)</option>
+          <option value="cscan">C-SCAN (Circular)</option>
+          <option value="look">LOOK (Intelligent)</option>
+          <option value="clook">C-LOOK (Circular Look)</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="simulate()">🚀 LAUNCH ROCKET</button>
+      <button class="btn-secondary" onclick="compareAll()">📊 COMPARE ALL</button>
+      <button id="stopSimBtn" class="btn-secondary" style="background:#2a1c38;">⏹️ ABORT</button>
+    </div>
+  </div>
+
+  <!-- star map (planets + rocket) -->
+  <div class="galaxy-wrapper">
+    <div class="galaxy" id="galaxy">
+      <div class="ship" id="ship">🚀</div>
+    </div>
+  </div>
+
+  <!-- telemetry & buffer -->
+  <div class="glass-panel" style="padding: 18px 22px;">
+    <div class="metrics-panel">
+      <div class="metric-card"><h4>🎯 ACTIVE ALGO</h4><div class="value" id="activeAlgo">—</div></div>
+      <div class="metric-card"><h4>💿 CURRENT TRACK</h4><div class="value" id="currentTrack">—</div></div>
+      <div class="metric-card"><h4>📏 TOTAL SEEK DIST</h4><div class="value" id="totalSeek">0</div></div>
+      <div class="metric-card"><h4>⚠️ BUFFER EVENTS</h4><div class="value" id="buffEvents">0</div></div>
+      <div class="metric-card"><h4>⏱️ PROGRESS</h4><div class="value" id="stepCount">0/0</div></div>
+    </div>
+    <div style="margin-top: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <span>🔋 BUFFER HEALTH</span>
+        <div class="speed-slider">
+          <span>🐢</span>
+          <input type="range" id="speedSlider" min="250" max="1200" step="20" value="700">
+          <span>🐇</span>
+          <span id="speedVal" style="font-family:monospace;">700ms</span>
+        </div>
+        <span id="status" style="font-weight:bold;">🟢 READY</span>
+      </div>
+      <div class="buffer-container">
+        <div class="buffer-fill" id="buf" style="width: 70%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-panel">
+    <div class="graph-container">
+      <canvas id="graph" width="600" height="150" style="width:100%; height:auto; max-width:100%; background:#01040c;"></canvas>
+    </div>
+    <div id="compareContainer" style="margin-top: 15px;">
+      <div class="compare-table" id="algoCompareBadges"></div>
+      <p id="result" style="margin-top: 14px; font-size:0.85rem; text-align:center; font-family: monospace;"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ========== STARFIELD WITH TWINKLE ==========
+  const starCanvas = document.getElementById("stars");
+  let sctx = starCanvas.getContext("2d");
+  function resizeStars() {
+    starCanvas.width = window.innerWidth;
+    starCanvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeStars);
+  resizeStars();
+  let starsArray = [];
+  function initStars(count = 220) {
+    starsArray = [];
+    for (let i = 0; i < count; i++) {
+      starsArray.push({
+        x: Math.random() * starCanvas.width,
+        y: Math.random() * starCanvas.height,
+        r: Math.random() * 2.2,
+        alpha: Math.random() * 0.6 + 0.3,
+        twinkle: Math.random() * 0.05 + 0.02
+      });
+    }
+  }
+  initStars();
+  function drawStars() {
+    if (!sctx) return;
+    sctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+    starsArray.forEach(s => {
+      sctx.beginPath();
+      sctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      let twink = s.alpha + Math.sin(Date.now() * s.twinkle) * 0.2;
+      sctx.fillStyle = `rgba(255, 248, 220, ${Math.min(0.9, Math.max(0.2, twink))})`;
+      sctx.fill();
+      s.y += 0.22;
+      if (s.y > starCanvas.height) {
+        s.y = 0;
+        s.x = Math.random() * starCanvas.width;
+      }
+    });
+    requestAnimationFrame(drawStars);
+  }
+  drawStars();
+
+  // ========== SIMULATION GLOBALS ==========
+  let activeSimulation = false;
+  let simTimeout = null;
+  let currentStepIndex = 0;
+  let totalSeekDistance = 0;
+  let bufferEventCount = 0;
+  let currentBuffer = 68;
+  let planetMap = {};        // stores DOM elements per track
+  let currentSeqList = [];
+  let animationDelay = 700;
+  let currentAlgoDisplay = "";
+
+  // DOM elements
+  const galaxyContainer = document.getElementById("galaxy");
+  const shipElement = () => document.getElementById("ship");  // dynamic getter
+  const bufFillDiv = document.getElementById("buf");
+  const statusSpan = document.getElementById("status");
+  const totalSeekSpan = document.getElementById("totalSeek");
+  const buffEventsSpan = document.getElementById("buffEvents");
+  const stepCountSpan = document.getElementById("stepCount");
+  const currentTrackSpan = document.getElementById("currentTrack");
+  const activeAlgoSpan = document.getElementById("activeAlgo");
+  const graphCanvas = document.getElementById("graph");
+  let graphCtx = graphCanvas ? graphCanvas.getContext("2d") : null;
+
+  // speed slider
+  const speedSlider = document.getElementById("speedSlider");
+  const speedValSpan = document.getElementById("speedVal");
+  speedSlider.addEventListener("input", (e) => {
+    animationDelay = parseInt(e.target.value);
+    speedValSpan.innerText = animationDelay + "ms";
+  });
+
+  // stop button
+  document.getElementById("stopSimBtn").addEventListener("click", () => {
+    if (simTimeout) clearTimeout(simTimeout);
+    activeSimulation = false;
+    statusSpan.innerText = "⏸️ MISSION ABORTED";
+    statusSpan.style.color = "#ffaa88";
+  });
+
+  // ========== CORE ALGORITHMS (exactly as requested, no modifications) ==========
+  function getSequence(queue, head, algo) {
+    let q = [...queue];
+    let sorted = [...q].sort((a,b)=>a-b);
+    let left = sorted.filter(x => x < head);
+    let right = sorted.filter(x => x >= head);
+    if (algo === "fcfs") return [head, ...q];
+    if (algo === "sstf") {
+      let req = [...q], cur = head, seq = [cur];
+      while(req.length) {
+        let closest = req.reduce((a,b) => Math.abs(b-cur) < Math.abs(a-cur) ? b : a);
+        seq.push(closest);
+        cur = closest;
+        req = req.filter(x => x !== closest);
+      }
+      return seq;
+    }
+    if (algo === "scan") return [head, ...right, 199, ...left.reverse()];
+    if (algo === "cscan") return [head, ...right, 199, 0, ...left];
+    if (algo === "look") return [head, ...right, ...left.reverse()];
+    if (algo === "clook") return [head, ...right, ...left];
+    return [head, ...q];
+  }
+
+  // ========== CREATE PLANETS (avoid overlapping by distributing Y positions) ==========
+  function rebuildGalaxy(queueValues, startHead) {
+    galaxyContainer.innerHTML = `<div class="ship" id="ship">🚀</div>`;
+    const newPlanets = {};
+    // use a hash to distribute Y positions nicely
+    const uniqueTracks = [...new Set(queueValues)];
+    uniqueTracks.forEach((track, idx) => {
+      const planetDiv = document.createElement("div");
+      planetDiv.className = "planet";
+      // X coordinate based on track number (0-199 mapped to px)
+      planetDiv.style.left = (track * 3) + "px";
+      // dynamic Y to avoid overlapping: use sin wave + random offset
+      const yOffset = 40 + (track % 7) * 18 + (idx % 3) * 8;
+      planetDiv.style.top = Math.min(210, Math.max(30, yOffset)) + "px";
+      planetDiv.innerText = track;
+      planetDiv.setAttribute("data-track", track);
+      galaxyContainer.appendChild(planetDiv);
+      newPlanets[track] = planetDiv;
+    });
+    // set rocket initial position
+    const ship = document.getElementById("ship");
+    if (ship) ship.style.left = (startHead * 3) + "px";
+    return newPlanets;
+  }
+
+  // reset graph
+  function resetGraphCanvas() {
+    if (!graphCtx) return;
+    graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+    graphCtx.fillStyle = "#17212b";
+    graphCtx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
+    graphCtx.fillStyle = "#7bc5ff";
+    graphCtx.font = "9px monospace";
+    graphCtx.fillText("BUFFER FLOW DURING SEEK", 12, 20);
+    for(let i=0;i<10;i++) {
+      graphCtx.beginPath();
+      graphCtx.strokeStyle = "#2c4a6e";
+      graphCtx.moveTo(0, i*14+30);
+      graphCtx.lineTo(graphCanvas.width, i*14+30);
+      graphCtx.stroke();
+    }
+  }
+
+  // buffer logic
+  function applyBufferUpdate(distance) {
+    currentBuffer -= distance * 0.23;
+    currentBuffer += 11;
+    currentBuffer = Math.min(100, Math.max(0, currentBuffer));
+    bufFillDiv.style.width = currentBuffer + "%";
+    let isCritical = false;
+    if (currentBuffer <= 10) {
+      statusSpan.innerText = "🔴 CRITICAL BUFFER (LAG)";
+      statusSpan.style.color = "#ff7b72";
+      isCritical = true;
+    } else if (currentBuffer <= 35) {
+      statusSpan.innerText = "🟡 LOW BUFFER";
+      statusSpan.style.color = "#ffe29a";
+    } else {
+      statusSpan.innerText = "🟢 OPTIMAL STREAM";
+      statusSpan.style.color = "#9effcf";
+    }
+    return isCritical;
+  }
+
+  function drawBufferStep(stepIdx, bufferVal) {
+    if (!graphCtx) return;
+    const xPos = (stepIdx % 55) * 11;
+    if (xPos > graphCanvas.width - 8) graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+    graphCtx.fillStyle = bufferVal > 65 ? "#30e8a0" : (bufferVal > 30 ? "#ffb347" : "#ff5e6e");
+    graphCtx.fillRect(xPos, graphCanvas.height - (bufferVal * 1.25), 6, bufferVal * 1.25);
+  }
+
+  function updateTelemetry(stepDone, totalSteps, currentTrack, seekAcc, buffCount) {
+    currentTrackSpan.innerText = (currentTrack !== undefined) ? currentTrack : "—";
+    totalSeekSpan.innerText = seekAcc;
+    buffEventsSpan.innerText = buffCount;
+    stepCountSpan.innerText = `${stepDone}/${totalSteps}`;
+  }
+
+  // ========== MAIN SIMULATION STEP (ROCKET MOVES CORRECTLY) ==========
+  function simulationStep(seq, planets, totalSteps) {
+    if (!activeSimulation) return;
+    if (currentStepIndex >= seq.length - 1) {
+      activeSimulation = false;
+      statusSpan.innerText = "✅ MISSION COMPLETE";
+      statusSpan.style.color = "#a5ffcf";
+      document.getElementById("result").innerHTML = `✨ Simulation finished. Total seek distance: ${totalSeekDistance} | Buffering events: ${bufferEventCount}`;
+      if (simTimeout) clearTimeout(simTimeout);
+      return;
+    }
+
+    const prevTrack = seq[currentStepIndex];
+    const nextTrack = seq[currentStepIndex + 1];
+    const distance = Math.abs(nextTrack - prevTrack);
+    totalSeekDistance += distance;
+
+    // --- MOVE ROCKET (critical fix: get fresh ship element each step) ---
+    const rocket = document.getElementById("ship");
+    if (rocket) {
+      rocket.style.left = (nextTrack * 3) + "px";
+    }
+
+    const bufferEvent = applyBufferUpdate(distance);
+    if (bufferEvent) bufferEventCount++;
+
+    // mark planet as visited
+    if (planets[nextTrack]) {
+      planets[nextTrack].classList.add("visited");
+    }
+
+    updateTelemetry(currentStepIndex + 1, totalSteps, nextTrack, totalSeekDistance, bufferEventCount);
+    drawBufferStep(currentStepIndex, currentBuffer);
+
+    currentStepIndex++;
+    if (activeSimulation) {
+      simTimeout = setTimeout(() => simulationStep(seq, planets, totalSteps), animationDelay);
+    }
+  }
+
+  // ========== LAUNCH SIMULATION ==========
+  function simulate() {
+    // kill previous run
+    if (simTimeout) clearTimeout(simTimeout);
+    activeSimulation = false;
+
+    const queueInput = document.getElementById("queue").value;
+    const headInput = parseInt(document.getElementById("head").value);
+    const algo = document.getElementById("algo").value;
+
+    let queueArray = queueInput.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n >= 0 && n <= 199);
+    let startHead = isNaN(headInput) ? 53 : Math.min(199, Math.max(0, headInput));
+    if (queueArray.length === 0) {
+      alert("Please enter valid track numbers (0-199) separated by commas.");
+      return;
+    }
+
+    // remove duplicate tracks for visualization (but keep them for seek logic, they won't duplicate planets)
+    const uniqueQueue = [...new Set(queueArray)];
+    const seq = getSequence(queueArray, startHead, algo);
+    if (!seq.length) return;
+
+    // reset global state
+    totalSeekDistance = 0;
+    bufferEventCount = 0;
+    currentStepIndex = 0;
+    currentBuffer = 70;
+    bufFillDiv.style.width = "70%";
+    resetGraphCanvas();
+
+    // rebuild galaxy with planets (no overlapping due to dynamic Y)
+    planetMap = rebuildGalaxy(uniqueQueue, seq[0]);
+
+    currentAlgoDisplay = algo.toUpperCase();
+    activeAlgoSpan.innerText = currentAlgoDisplay;
+    updateTelemetry(0, seq.length - 1, seq[0], 0, 0);
+    statusSpan.innerText = "🚀 ROCKET EN ROUTE";
+    statusSpan.style.color = "#b8f2ff";
+    activeSimulation = true;
+    simulationStep(seq, planetMap, seq.length - 1);
+  }
+
+  // ========== COMPARE ALL ALGORITHMS (English labels) ==========
+  function compareAll() {
+    const queueInput = document.getElementById("queue").value;
+    const headInput = parseInt(document.getElementById("head").value);
+    let queueArray = queueInput.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n >= 0 && n <= 199);
+    let startHead = isNaN(headInput) ? 53 : Math.min(199, Math.max(0, headInput));
+    if (queueArray.length === 0) {
+      alert("Enter a valid queue first.");
+      return;
+    }
+
+    const algorithms = ["fcfs", "sstf", "scan", "cscan", "look", "clook"];
+    const algoNames = { fcfs: "FCFS", sstf: "SSTF", scan: "SCAN", cscan: "C-SCAN", look: "LOOK", clook: "C-LOOK" };
+    let results = [];
+    let bestDistance = Infinity;
+    let bestAlgoKey = "";
+
+    for (let alg of algorithms) {
+      const seq = getSequence(queueArray, startHead, alg);
+      let total = 0;
+      for (let i = 1; i < seq.length; i++) total += Math.abs(seq[i] - seq[i - 1]);
+      results.push({ name: algoNames[alg], distance: total });
+      if (total < bestDistance) {
+        bestDistance = total;
+        bestAlgoKey = algoNames[alg];
+      }
+    }
+
+    const badgeContainer = document.getElementById("algoCompareBadges");
+    badgeContainer.innerHTML = "";
+    results.forEach(r => {
+      const badge = document.createElement("div");
+      badge.className = `algo-badge ${r.name === bestAlgoKey ? "best-badge" : ""}`;
+      badge.innerHTML = `${r.name}  ⚡ ${r.distance}`;
+      badgeContainer.appendChild(badge);
+    });
+    document.getElementById("result").innerHTML = `🏆 BEST ALGORITHM: <strong style="color: #ffd966;">${bestAlgoKey}</strong>  |  minimal seek = ${bestDistance}  ✨ comparison done.`;
+  }
+
+  // attach to window
+  window.simulate = simulate;
+  window.compareAll = compareAll;
+
+  // initial setup
+  window.addEventListener("load", () => {
+    const defQueue = document.getElementById("queue");
+    if (defQueue.value.trim() === "") defQueue.value = "98,183,37,122,14,124,65,67";
+    if (document.getElementById("head").value === "") document.getElementById("head").value = "53";
+    resetGraphCanvas();
+    activeAlgoSpan.innerText = "READY";
+    statusSpan.innerText = "🌌 SYSTEM ONLINE | Select algorithm";
+    bufFillDiv.style.width = "70%";
+  });
+</script>
+</body>
+</html>
